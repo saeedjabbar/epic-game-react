@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
-import myEpicGame from './utils/MyEpicGame.json';
 import { CONTRACT_ADDRESS, transformCharacterData } from './constants';
+import myEpicGame from './utils/MyEpicGame.json';
+import { ethers } from 'ethers';
 import './styles/App.css';
 import SelectCharacter from './Components/SelectCharacter';
 import twitterLogo from './assets/twitter-logo.svg';
@@ -12,8 +12,8 @@ const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
 const App = () => {
   // State
-  const [currentAccount, setCurrentAccount] = useState();
-  const [characterNFT, setCharacterNFT] = useState();
+  const [currentAccount, setCurrentAccount] = useState(null);
+  const [characterNFT, setCharacterNFT] = useState(null);
 
   // Actions
   const checkIfWalletIsConnected = async () => {
@@ -57,7 +57,7 @@ const App = () => {
       );
 
       const txn = await gameContract.checkIfUserHasNFT();
-      
+
       if (txn.name) {
         console.log('User has character NFT');
         setCharacterNFT(transformCharacterData(txn));
@@ -132,9 +132,11 @@ const App = () => {
     }
   };
 
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
+
 
   
   return (
@@ -148,13 +150,13 @@ const App = () => {
           </div>
         </div>
         <div className="footer-container row">
-          <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
+          <p className="footer-text"> To play the game you need metamask and fake ethereum from a faucet. Make sure that your network says "rinkeby test network".</p>
           <a
             className="footer-text"
             href={TWITTER_LINK}
             target="_blank"
             rel="noreferrer"
-          >{`@${TWITTER_HANDLE}`}</a>
+          >built by: {`@${TWITTER_HANDLE}`}</a>
         </div>
       </div>
     </div>
