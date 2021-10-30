@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, transformCharacterData } from '../../constants';
 import myEpicGame from '../../utils/MyEpicGame.json';
 import './Arena.css';
+import LoadingIndicator from '../LoadingIndicator';
 
 /*
  * We pass in our characterNFT metadata so we can a cool card in our UI
@@ -12,6 +13,7 @@ const Arena = ({ characterNFT, setCharacterNFT}) => {
   const [gameContract, setGameContract] = useState(null);
   const [boss, setBoss] = useState(null);
   const [attackState, setAttackState] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   const runAttackAction = async () => {
     try {
@@ -22,6 +24,11 @@ const Arena = ({ characterNFT, setCharacterNFT}) => {
         await attackTxn.wait();
         console.log('attackTxn:', attackTxn);
         setAttackState('hit');
+
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+        }, 5000);
       }
     } catch (error) {
       console.error('Error attacking boss:', error);
@@ -68,7 +75,12 @@ const Arena = ({ characterNFT, setCharacterNFT}) => {
 
   return (
     <div className="row text-white mb-5 mt-3">
-      {/* Boss */}
+      {/* Add your toast HTML right here */}
+      {boss && (
+        <div id="toast" className="show">
+          <div id="desc">{`💥 ${boss.name} was hit for ${characterNFT.attackDamage}!`}</div>
+        </div>
+      )}
       {boss && (
         <div className="col-sm-6">
           <div className="boss-container">
@@ -86,6 +98,13 @@ const Arena = ({ characterNFT, setCharacterNFT}) => {
               <button className="cta-button" onClick={runAttackAction}>
                 {`💥 Attack ${boss.name}`}
               </button>
+              {/* Add this right under your attack button */}
+              {attackState === 'attacking' && (
+                <div className="loading-indicator">
+                  <LoadingIndicator />
+                  <p>Attacking ⚔️</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

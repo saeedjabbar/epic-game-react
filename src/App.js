@@ -5,6 +5,7 @@ import myEpicGame from './utils/MyEpicGame.json';
 import { ethers } from 'ethers';
 import SelectCharacter from './Components/SelectCharacter';
 import Arena from './Components/Arena';
+import LoadingIndicator from './Components/LoadingIndicator';
 
 // Constants
 const TWITTER_HANDLE = 'saeedjabbar';
@@ -14,6 +15,7 @@ const App = () => {
   // State
   const [currentAccount, setCurrentAccount] = useState(null);
   const [characterNFT, setCharacterNFT] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Actions
   const checkIfWalletIsConnected = async () => {
@@ -41,10 +43,16 @@ const App = () => {
     }
   };
 
+  // UseEffects
   useEffect(() => {
     /*
-     * The function we will call that interacts with out smart contract
+     * Anytime our component mounts, make sure to immiediately set our loading state
      */
+    setIsLoading(true);
+    checkIfWalletIsConnected();
+  }, []);
+
+  useEffect(() => {
     const fetchNFTMetadata = async () => {
       console.log('Checking for Character NFT on address:', currentAccount);
 
@@ -56,19 +64,18 @@ const App = () => {
         signer
       );
 
-      const txn = await gameContract.checkIfUserHasNFT();
-
-      if (txn.name) {
+      const characterNFT = await gameContract.checkIfUserHasNFT();
+      if (characterNFT.name) {
         console.log('User has character NFT');
-        setCharacterNFT(transformCharacterData(txn));
-      } else {
-        console.log('No character NFT found');
+        setCharacterNFT(transformCharacterData(characterNFT));
       }
+
+      /*
+       * Once we are done with all the fetching, set loading state to false
+       */
+      setIsLoading(false);
     };
 
-    /*
-     * We only want to run this, if we have a connected wallet
-     */
     if (currentAccount) {
       console.log('CurrentAccount:', currentAccount);
       fetchNFTMetadata();
@@ -77,7 +84,10 @@ const App = () => {
 
   // Render Methods
   const renderContent = () => {
-
+    if (isLoading) {
+      return <LoadingIndicator />;
+    }
+    
     if (!currentAccount) {
       return (
         <div className="connect-wallet-container">
