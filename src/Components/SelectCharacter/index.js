@@ -1,111 +1,87 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SelectCharacter.css';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, transformCharacterData } from '../../constants';
+import { CONTRACT_ADDRESS, transformCharacterData } from './../../constants';
 import myEpicGame from '../../utils/MyEpicGame.json';
-import LoadingIndicator from '../LoadingIndicator';
-
+import LoadingIndicator from './../LoadingIndicator';
 
 const SelectCharacter = ({ setCharacterNFT }) => {
   const [characters, setCharacters] = useState([]);
   const [gameContract, setGameContract] = useState(null);
   const [mintingCharacter, setMintingCharacter] = useState(false);
 
-
-  // Actions
   const mintCharacterNFTAction = (characterId) => async () => {
     try {
       if (gameContract) {
-        /*
-         * Show our loading indicator
-         */
         setMintingCharacter(true);
         console.log('Minting character in progress...');
         const mintTxn = await gameContract.mintCharacterNFT(characterId);
         await mintTxn.wait();
-        console.log(mintTxn);
-        /*
-         * Hide our loading indicator when minting is finished
-         */
+        console.log("MintTxn: ", mintTxn);
         setMintingCharacter(false);
       }
-    } catch (error) {
-      console.warn('MintCharacterAction Error:', error);
-      /*
-       * If there is a problem, hide the loading indicator as well
-       */
+      else {
+        console.error("MintCharacterAction Error: ", "Game Contract is null");
+      }
+    } catch (err) {
+      console.error("MintCharacterAction Error:", err);
       setMintingCharacter(false);
     }
-  };
+  }
 
-  // UseEffect
+  const renderCharacters = () => characters.map((character, index) => (
+    <div className="character-item" key={character.name}>
+      <div className="name-container">
+        <p>{character.name}</p>
+      </div>
+      <img src={character.imageURI} alt={character.name} />
+      <button
+        type="button"
+        className="character-mint-button"
+        onClick={mintCharacterNFTAction(index)}
+      >{`Mint ${character.name}`}</button>
+    </div>
+  ));
+
   useEffect(() => {
+
     const { ethereum } = window;
 
     if (ethereum) {
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
-      const gameContract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        myEpicGame.abi,
-        signer
-      );
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, myEpicGame.abi, signer);
 
-      /*
-       * This is the big difference. Set our gameContract in state.
-       */
       setGameContract(gameContract);
     } else {
-      console.log('Ethereum object not found');
+      console.log('No ethereum found');
     }
   }, []);
 
   useEffect(() => {
     const getCharacters = async () => {
-      try {
-        console.log('Getting contract characters to mint');
+      const charactersTxn = await gameContract.getAllDefaultCharacters();
+      console.log(`All the default characters fetched `, charactersTxn);
 
-        const charactersTxn = await gameContract.getAllDefaultCharacters();
-        console.log('charactersTxn:', charactersTxn);
+      const blah = charactersTxn.map(transformCharacterData);
+      console.log(`Transformed characters`, blah);
 
-        const characters = charactersTxn.map((characterData) =>
-          transformCharacterData(characterData)
-        );
+      setCharacters(blah);
+    }
 
-        setCharacters(characters);
-      } catch (error) {
-        console.error('Something went wrong fetching characters:', error);
-      }
-    };
+    const onCharacterMinted = async (sender, tokenId, characterIndex) => {
+      console.log(`CharacterNFT minted - sender ${sender} tokenId: ${tokenId} characterIndex: ${characterIndex}`);
 
-    /*
-     * Add a callback method that will fire when this event is received
-     */
-    const onCharacterMint = async (sender, tokenId, characterIndex) => {
-      console.log(
-        `CharacterNFTMinted - sender: ${sender} tokenId: ${tokenId.toNumber()} characterIndex: ${characterIndex.toNumber()}`
-      );
-
-      alert(`Your NFT is all done -- see it here: https://testnets.opensea.io/assets/${gameContract}/${tokenId.toNumber()}`)
-
-      /*
-       * Once our character NFT is minted we can fetch the metadata from our contract
-       * and set it in state to move onto the Arena
-       */
       if (gameContract) {
-        const characterNFT = await gameContract.checkIfUserHasNFT();
-        console.log('CharacterNFT: ', characterNFT);
-        setCharacterNFT(transformCharacterData(characterNFT));
+        const character = await gameContract.checkIfUserHasNFT();
+        console.log(`CharacterNFT minted - character ${character}`);
+        setCharacterNFT(transformCharacterData(character));
       }
-    };
+    }
 
     if (gameContract) {
       getCharacters();
-
-      /*
-       * Setup NFT Minted Listener
-       */
-      gameContract.on('CharacterNFTMinted', onCharacterMint);
+      gameContract.on('ComradeNFTMinted', onCharacterMinted);
     }
 
     return () => {
@@ -113,36 +89,19 @@ const SelectCharacter = ({ setCharacterNFT }) => {
        * When your component unmounts, let;s make sure to clean up this listener
        */
       if (gameContract) {
-        gameContract.off('CharacterNFTMinted', onCharacterMint);
+        gameContract.off('ComradeNFTMinted', onCharacterMinted);
       }
     };
   }, [gameContract]);
 
-
-  // Render Methods
-  const renderCharacters = () =>
-    characters.map((character, index) => (
-      <div className="character-item" key={character.name}>
-        <div className="name-container">
-          <p>{character.name}</p>
-        </div>
-        <img src={character.imageURI} alt={character.name} />
-        <button
-          type="button"
-          className="character-mint-button"
-          onClick={mintCharacterNFTAction(index)}
-        >{`Mint ${character.name}`}</button>
-      </div>
-    ));
-
   return (
     <div className="select-character-container">
-      <h3 className="mb-3 mt-3">Choose a character to play and get an nft of them!</h3>
+      <h2>Mint Your Hero. Choose wisely.</h2>
       {/* Only show this when there are characters in state */}
       {characters.length > 0 && (
         <div className="character-grid">{renderCharacters()}</div>
       )}
-      {/* Only show our loading state if mintingCharacter is true */}
+
       {mintingCharacter && (
         <div className="loading">
           <div className="indicator">
@@ -156,10 +115,7 @@ const SelectCharacter = ({ setCharacterNFT }) => {
         </div>
       )}
     </div>
-  );
-};
-
+  )
+}
 
 export default SelectCharacter;
-
-
