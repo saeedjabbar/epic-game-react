@@ -7,10 +7,45 @@ import './Arena.css';
 /*
  * We pass in our characterNFT metadata so we can a cool card in our UI
  */
-const Arena = ({ characterNFT }) => {
+const Arena = ({ characterNFT, setCharacterNFT}) => {
   // State
   const [gameContract, setGameContract] = useState(null);
+  const [boss, setBoss] = useState(null);
+  const [attackState, setAttackState] = useState('');
 
+  const runAttackAction = async () => {
+    try {
+      if (gameContract) {
+        setAttackState('attacking');
+        console.log('Attacking boss...');
+        const attackTxn = await gameContract.attackBoss();
+        await attackTxn.wait();
+        console.log('attackTxn:', attackTxn);
+        setAttackState('hit');
+      }
+    } catch (error) {
+      console.error('Error attacking boss:', error);
+      setAttackState('');
+    }
+  };
+
+  useEffect(() => {
+    /*
+     * Setup async function that will get the boss from our contract and sets in state
+     */
+    const fetchBoss = async () => {
+      const bossTxn = await gameContract.getBigBoss();
+      console.log('Boss:', bossTxn);
+      setBoss(transformCharacterData(bossTxn));
+    };
+
+    if (gameContract) {
+      /*
+       * gameContract is ready to go! Let's fetch our boss
+       */
+      fetchBoss();
+    }
+  }, [gameContract]);
   // UseEffects
   useEffect(() => {
     const { ethereum } = window;
@@ -30,15 +65,60 @@ const Arena = ({ characterNFT }) => {
     }
   }, []);
 
-  return (
-    <div className="arena-container">
-      {/* Boss */}
-      <p>BOSS GOES HERE</p>
 
-      {/* Character NFT */}
-      <p>CHARACTER NFT GOES HERE</p>
+  return (
+    <div className="row text-white mb-5 mt-3">
+      {/* Boss */}
+      {boss && (
+        <div className="col-sm-6">
+          <div className="boss-container">
+              <h2>🔥 {boss.name} 🔥</h2>
+            <div className={`boss-content ${attackState}`}>
+              <div className="image-content">
+                <img src={boss.imageURI} alt={`Boss ${boss.name}`} />
+                <div className="health-bar">
+                  <progress value={boss.hp} max={boss.maxHp} />
+                  <p>{`${boss.hp} / ${boss.maxHp} HP`}</p>
+                </div>
+              </div>
+            </div>
+            <div className="attack-container">
+              <button className="cta-button" onClick={runAttackAction}>
+                {`💥 Attack ${boss.name}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Replace your Character UI with this */}
+      {characterNFT && (
+        <div className="col-sm-6">
+        <div className="players-container">
+          <div className="player-container">
+              <h2>{characterNFT.name}</h2>
+            <div className="player">
+              <div className="image-content">
+                <img
+                  src={characterNFT.imageURI}
+                  alt={`Character ${characterNFT.name}`}
+                />
+                <div className="health-bar">
+                  <progress value={characterNFT.hp} max={characterNFT.maxHp} />
+                  <p>{`${characterNFT.hp} / ${characterNFT.maxHp} HP`}</p>
+                </div>
+              </div>
+            </div>
+          </div>          
+        </div>
+          <div className="stats mt-3">
+            <h4>{`⚔️ Attack Damage: ${characterNFT.attackDamage}`}</h4>
+          </div>
+      </div>
+      )}
     </div>
   );
+
 };
 
 export default Arena;

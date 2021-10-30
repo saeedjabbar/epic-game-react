@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import './styles/App.css';
 import { CONTRACT_ADDRESS, transformCharacterData } from './constants';
 import myEpicGame from './utils/MyEpicGame.json';
 import { ethers } from 'ethers';
-import './styles/App.css';
 import SelectCharacter from './Components/SelectCharacter';
-import twitterLogo from './assets/twitter-logo.svg';
+import Arena from './Components/Arena';
 
 // Constants
 const TWITTER_HANDLE = 'saeedjabbar';
@@ -77,9 +77,7 @@ const App = () => {
 
   // Render Methods
   const renderContent = () => {
-    /*
-     * Scenario #1
-     */
+
     if (!currentAccount) {
       return (
         <div className="connect-wallet-container">
@@ -95,11 +93,13 @@ const App = () => {
           </button>
         </div>
       );
-      /*
-       * Scenario #2
-       */
     } else if (currentAccount && !characterNFT) {
       return <SelectCharacter setCharacterNFT={setCharacterNFT} />;
+      /*
+      * If there is a connected wallet and characterNFT, it's time to battle!
+      */
+    } else if (currentAccount && characterNFT) {
+      return <Arena characterNFT={characterNFT} />;
     }
   };
 
@@ -145,18 +145,19 @@ const App = () => {
         <div className="header-container row">
           <p className="header gradient-text">Become a Pokemon Master</p>
           <p className="sub-text">Be the very best that no one ever was in the meta verse!</p>
+          <a
+            className="footer-text"
+            href={TWITTER_LINK}
+            target="_blank"
+            rel="noreferrer"
+          >👻 built by: {`@${TWITTER_HANDLE}`}
+          </a>
           <div className="connect-wallet-container row">
             {renderContent()}
           </div>
         </div>
         <div className="footer-container row">
           <p className="footer-text"> To play the game you need metamask and fake ethereum from a faucet. Make sure that your network says "rinkeby test network".</p>
-          <a
-            className="footer-text"
-            href={TWITTER_LINK}
-            target="_blank"
-            rel="noreferrer"
-          >built by: {`@${TWITTER_HANDLE}`}</a>
         </div>
       </div>
     </div>

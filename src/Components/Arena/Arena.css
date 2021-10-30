@@ -16,7 +16,6 @@
 .boss-container .boss-content {
   display: flex;
   flex-direction: column;
-  padding: 15px;
   border-radius: 10px;
   background-image: linear-gradient(
     to right,
@@ -93,8 +92,6 @@
 .players-container .player {
   display: flex;
   flex-direction: column;
-  max-height: 80%;
-  padding: 10px;
   border-radius: 10px;
   background-color: gray;
 }
