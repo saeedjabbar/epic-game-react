@@ -71,28 +71,24 @@ const App = () => {
   // Render Methods
   const renderContent = () => {
     if (isLoading) {
-      return <LoadingIndicator />;
+      return <LoadingIndicator />
     }
     if (!currentAccount) {
-      return (
-        <div className="connect-wallet-container mt-5">
-          <button
-            className="cta-button connect-wallet-button"
-            onClick={connectWalletAction}
-          >
-            Connect Wallet To Get Started
-          </button>
-        </div>
-      );
-    } else if (currentAccount && !characterNFT) {
-      return <SelectCharacter setCharacterNFT={setCharacterNFT} />;
-      /*
-      * If there is a connected wallet and characterNFT, it's time to battle!
-      */
-    } else if (currentAccount && characterNFT) {
-      return <Arena characterNFT={characterNFT} setCharacterNFT={setCharacterNFT} />;
+      return (<div className="connect-wallet-container">
+        <button
+          className="cta-button connect-wallet-button"
+          onClick={connectWalletAction}
+        >
+          Connect Wallet To Get Started
+        </button>
+      </div>)
+    } else if (!characterNFT) {
+      return <SelectCharacter setCharacterNFT={setCharacterNFT} />
+    } else {
+      console.log("rendering arena")
+      return <Arena characterNFT={characterNFT} setCharacterNFT={setCharacterNFT} />
     }
-  };
+  }
   
   useEffect(() => {
     setIsLoading(false);

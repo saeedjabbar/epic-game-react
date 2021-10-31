@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './SelectCharacter.css';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, transformCharacterData } from './../../constants';
-import myEpicGame from '../../utils/MyEpicGame.json';
+import MyEpicGame from './../../utils/MyEpicGame.json';
 import LoadingIndicator from './../LoadingIndicator';
 
 const SelectCharacter = ({ setCharacterNFT }) => {
@@ -34,7 +34,7 @@ const SelectCharacter = ({ setCharacterNFT }) => {
       <div className="name-container">
         <p>{character.name}</p>
       </div>
-      <img src={character.imageURI} alt={character.name} />
+      <img src={`https://cloudflare-ipfs.com/ipfs/${character.imageURI}`} alt={character.name} />
       <button
         type="button"
         className="character-mint-button"
@@ -50,9 +50,9 @@ const SelectCharacter = ({ setCharacterNFT }) => {
     if (ethereum) {
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, myEpicGame.abi, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, MyEpicGame.abi, signer);
 
-      setGameContract(gameContract);
+      setGameContract(contract);
     } else {
       console.log('No ethereum found');
     }
@@ -81,7 +81,7 @@ const SelectCharacter = ({ setCharacterNFT }) => {
 
     if (gameContract) {
       getCharacters();
-      gameContract.on('ComradeNFTMinted', onCharacterMinted);
+      gameContract.on('CharacterNFTMinted', onCharacterMinted);
     }
 
     return () => {
@@ -89,7 +89,7 @@ const SelectCharacter = ({ setCharacterNFT }) => {
        * When your component unmounts, let;s make sure to clean up this listener
        */
       if (gameContract) {
-        gameContract.off('ComradeNFTMinted', onCharacterMinted);
+        gameContract.off('CharacterNFTMinted', onCharacterMinted);
       }
     };
   }, [gameContract]);
