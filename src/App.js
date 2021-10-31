@@ -90,7 +90,7 @@ const App = () => {
       * If there is a connected wallet and characterNFT, it's time to battle!
       */
     } else if (currentAccount && characterNFT) {
-      return <Arena characterNFT={characterNFT} />;
+      return <Arena characterNFT={characterNFT} setCharacterNFT={setCharacterNFT} />;
     }
   };
   
